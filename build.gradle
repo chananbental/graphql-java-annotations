@@ -1,27 +1,11 @@
-import aQute.bnd.gradle.Bundle
-import io.github.gradlenexus.publishplugin.NexusRepository
 
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'biz.aQute.bnd:biz.aQute.bnd.gradle:6.4.0'
-        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:latest.release"
-    }
-}
 plugins {
-    id 'net.researchgate.release' version '3.0.2'
-    id 'com.github.hierynomus.license' version '0.16.1'
+    id 'java-library'
     id 'maven-publish'
     id 'signing'
-    id "io.github.gradle-nexus.publish-plugin" version "1.3.0"
 }
 
-apply plugin: 'java'
 apply plugin: 'idea'
-apply plugin: 'biz.aQute.bnd.builder'
-apply plugin: 'maven-publish'
 
 
 // custom tasks for creating source/javadoc jars
@@ -37,50 +21,49 @@ tasks.register('javadocJar', Jar) {
     from javadoc.destinationDir
 }
 
-release {
-    tagTemplate = 'v${version}'
-    failOnPublishNeeded = false
-    failOnCommitNeeded = false
-}
-
 repositories {
     mavenCentral()
 }
 
-gradle.projectsEvaluated {
-    tasks.withType(JavaCompile).tap {
-        configureEach {
-            doLast {
-                options.compilerArgs += "-parameters"
-            }
-        }
-    }
+// Preserve Java parameter names for annotation-based argument discovery.
+// Compiler arguments must be set before compilation, not in a doLast action.
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs.add('-parameters')
+    options.release = 17
 }
 
 dependencies {
     implementation 'javax.validation:validation-api:1.1.0.Final'
-    implementation 'com.graphql-java:graphql-java:24.3'
-    implementation 'com.graphql-java:graphql-java-extended-scalars:24.0'
+    api 'com.graphql-java:graphql-java:26.1'
+    api 'com.graphql-java:graphql-java-extended-scalars:24.0'
     implementation 'javax.xml.bind:jaxb-api:2.3.1'
 
     // OSGi
     compileOnly 'org.osgi:org.osgi.core:6.0.0'
     compileOnly 'org.osgi:org.osgi.service.cm:1.5.0'
     compileOnly 'org.osgi:org.osgi.service.component:1.3.0'
+    compileOnly 'org.osgi:org.osgi.service.component.annotations:1.3.0'
+    testCompileOnly 'org.osgi:org.osgi.service.component.annotations:1.3.0'
     compileOnly 'biz.aQute.bnd:biz.aQute.bndlib:3.2.0'
 
     testImplementation 'org.testng:testng:7.5.1'
     testImplementation 'org.hamcrest:hamcrest-all:1.3'
-    testImplementation 'org.mockito:mockito-core:2.+'
+    testImplementation 'org.mockito:mockito-core:5.+'
 }
 
 test.useTestNG()
 
 publishing {
+    repositories {
+        maven {
+            name = 'centralStaging'
+            url = uri(layout.buildDirectory.dir('central-staging').get().asFile)
+        }
+    }
     publications {
         maven(MavenPublication) {
             from components.java
-            groupId 'io.github.graphql-java'
+            groupId 'io.github.chananbental'
             artifactId project.name
             version project.version
 
@@ -92,13 +75,13 @@ publishing {
                     resolveStrategy = Closure.DELEGATE_FIRST
                     name 'graphql-java-annotations'
                     description 'Annotations-based syntax for GraphQL schema definition'
-                    url 'https://github.com/graphql-java/graphql-java-annotations'
+                    url 'https://github.com/chananbental/graphql-java-annotations'
                     inceptionYear '2016'
 
                     scm {
-                        url 'https://github.com/graphql-java/graphql-java-annotations'
-                        connection 'scm:https://yrashk@github.com/graphql-java/graphql-java-annotations.git'
-                        developerConnection 'scm:git://github.com/graphql-java/graphql-java-annotations.git'
+                        url 'https://github.com/chananbental/graphql-java-annotations'
+                        connection 'scm:git:https://github.com/chananbental/graphql-java-annotations.git'
+                        developerConnection 'scm:git:https://github.com/chananbental/graphql-java-annotations.git'
                     }
 
                     licenses {
@@ -145,29 +128,28 @@ publishing {
     }
 }
 
-afterReleaseBuild.dependsOn nexusPublishing
-
-nexusPublishing {
-    repositories {
-        sonatype {
-            username = System.getenv("MAVEN_CENTRAL_USERTOKEN_USERNAME")
-            password = System.getenv("MAVEN_CENTRAL_USERTOKEN_PASSWORD")
-        }
-    }
-}
 
 // to publish to local maven repo skip signing: ./gradlew publishToMavenLocal  -x signGraphqlJavaPublication
 signing {
     def signingKey = System.getenv("MAVEN_CENTRAL_PGP_KEY")
     def signingPassword = System.getenv("MAVEN_CENTRAL_PGP_PASSWORD")
     useInMemoryPgpKeys(signingKey, signingPassword == null ? "" : signingPassword)
-    sign publishing.publications
+    // Do not attach missing signature artifacts to local/CI publications.
+    // Signing remains required for release publication when a key is provided.
+    if (signingKey) {
+        sign publishing.publications
+    }
 }
 
-tasks.register('bundle', Bundle) {
-    from sourceSets.main.output
-}
 
 wrapper {
-    gradleVersion = '8.3'
+    gradleVersion = '9.2.1'
+}
+
+// Bundle a signed Maven-layout repository for Sonatype Central Portal.
+tasks.register('centralBundle', Zip) {
+    dependsOn 'publishMavenPublicationToCentralStagingRepository'
+    from(layout.buildDirectory.dir('central-staging'))
+    archiveFileName = "central-bundle-${project.version}.zip"
+    destinationDirectory = layout.buildDirectory.dir('distributions')
 }

@@ -1,31 +1,56 @@
-# This workflow will build a Java project with Gradle
-# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-gradle
-
-name: Publish
+name: Publish to Maven Central Portal
 
 on:
   workflow_dispatch:
-    branches: [ master ]
+    inputs:
+      release_version:
+        description: 'Release version (e.g. 26.1.0; no SNAPSHOT)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
 
 jobs:
-  publish:
+  stage:
     runs-on: ubuntu-latest
     environment: prod
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up JDK 11
-      uses: actions/setup-java@v3
-      with:
-        java-version: '11'
-        distribution: 'zulu'
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
-    - name: Build with Gradle
-      run: ./gradlew build
-    - name: Publish with Gradle
-      run: ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository
-      env:
-        MAVEN_CENTRAL_USERTOKEN_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERTOKEN_USERNAME }}
-        MAVEN_CENTRAL_USERTOKEN_PASSWORD: ${{ secrets.MAVEN_CENTRAL_USERTOKEN_PASSWORD }}
-        MAVEN_CENTRAL_PGP_KEY: ${{ secrets.MAVEN_CENTRAL_PGP_KEY }}
-        MAVEN_CENTRAL_PGP_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PGP_PASSWORD }}
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '25'
+      - name: Validate release inputs and credentials
+        env:
+          RELEASE_VERSION: ${{ inputs.release_version }}
+          CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERTOKEN_USERNAME }}
+          CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_USERTOKEN_PASSWORD }}
+          SIGNING_KEY: ${{ secrets.MAVEN_CENTRAL_PGP_KEY }}
+          SIGNING_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PGP_PASSWORD }}
+        run: |
+          [[ "$RELEASE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo 'Use a non-SNAPSHOT semantic version'; exit 1; }
+          for name in CENTRAL_USERNAME CENTRAL_PASSWORD SIGNING_KEY SIGNING_PASSWORD; do
+            [[ -n "${!name}" ]] || { echo "Missing secret: $name"; exit 1; }
+          done
+      - name: Build, test, sign and create Central bundle
+        env:
+          MAVEN_CENTRAL_PGP_KEY: ${{ secrets.MAVEN_CENTRAL_PGP_KEY }}
+          MAVEN_CENTRAL_PGP_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PGP_PASSWORD }}
+          RELEASE_VERSION: ${{ inputs.release_version }}
+        run: |
+          chmod +x gradlew
+          ./gradlew clean build centralBundle -Pversion="$RELEASE_VERSION"
+      - name: Upload to Central Portal for manual approval
+        env:
+          CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERTOKEN_USERNAME }}
+          CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_USERTOKEN_PASSWORD }}
+          RELEASE_VERSION: ${{ inputs.release_version }}
+        run: |
+          token="$(printf '%s:%s' "$CENTRAL_USERNAME" "$CENTRAL_PASSWORD" | base64 -w0)"
+          curl --fail-with-body --silent --show-error --request POST \
+            --header "Authorization: Bearer $token" \
+            --form "bundle=@build/distributions/central-bundle-$RELEASE_VERSION.zip" \
+            "https://central.sonatype.com/api/v1/publisher/upload?publishingType=USER_MANAGED"
+          echo
+          echo 'Review validation and explicitly publish at https://central.sonatype.com/publishing/deployments'

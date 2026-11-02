@@ -30,6 +30,20 @@ If you would like to use a tool that creates a graphql spring boot server using 
     - [Customizing Relay Schema](#customizing-relay-schema)     
 - [Community and Governance](#community-and-governance)
 
+## Upgrade branch: GraphQL Java 26.1
+
+This fork's upgrade branch builds with **JDK 25** and **Gradle 9.2.1**, targeting Java 17 bytecode for library consumers. The version `26.1.0-SNAPSHOT` is **not published to Maven Central**; build and install it locally using `./gradlew build publishToMavenLocal` before using the coordinates below.
+
+**TypeScript GraphQL Code Generator:** If a complex introspection query triggers GraphQL Java's `GoodFaithIntrospection` safeguard, upgrading this library alone does not disable that safeguard. A supported alternative is to export the already-built `GraphQLSchema` as SDL using `new graphql.schema.idl.SchemaPrinter().print(schema)`, save the result to `schema.graphql`, and configure `@graphql-codegen/cli` to read that local SDL file as its `schema`. The included compatibility tests cover basic introspection and SDL printing, but do not exercise a full Code Generator introspection request.
+
+**Packaging:** Maven-local publication is CI-tested. A manually triggered Central Portal upload workflow is configured but has not yet been exercised with release credentials. OSGi bundle metadata is not yet verified.
+
+## Publishing this fork to Maven Central
+
+The fork uses the independent namespace `io.github.chananbental`. Before the first release, sign in to [Sonatype Central Portal](https://central.sonatype.com/) and register/verify the GitHub-based namespace for `chananbental` (ownership verification is required). Generate a Central Portal user token and configure these four GitHub Actions environment secrets for `prod`: `MAVEN_CENTRAL_USERTOKEN_USERNAME`, `MAVEN_CENTRAL_USERTOKEN_PASSWORD`, `MAVEN_CENTRAL_PGP_KEY` (ASCII-armored private PGP key), and `MAVEN_CENTRAL_PGP_PASSWORD`. The key's public half must be discoverable by Central's verification process.
+
+After the upgrade branch is ready for release, manually run **Publish to Maven Central Portal** with `release_version=26.1.0`. This builds/tests/signs the artifact and uploads a bundle with `USER_MANAGED` publishing. Review and explicitly approve the validated deployment in the [Central Portal deployments page](https://central.sonatype.com/publishing/deployments). No release has been uploaded or published yet. After Central publication, consume `io.github.chananbental:graphql-java-annotations:26.1.0` using `mavenCentral()`.
+
 ## Getting Started
 
 
@@ -37,7 +51,7 @@ If you would like to use a tool that creates a graphql spring boot server using 
 
 ```groovy
 dependencies {
-  compile "io.github.graphql-java:graphql-java-annotations:24.3"
+  implementation "io.github.chananbental:graphql-java-annotations:26.1.0-SNAPSHOT"
 }
 ```
 
@@ -45,9 +59,9 @@ dependencies {
 
 ```groovy
 <dependency>
-    <groupId>io.github.graphql-java</groupId>
+    <groupId>io.github.chananbental</groupId>
     <artifactId>graphql-java-annotations</artifactId>
-    <version>24.3</version>
+    <version>26.1.0-SNAPSHOT</version>
 </dependency>
 ```
 
