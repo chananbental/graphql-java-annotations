@@ -11,7 +11,6 @@ buildscript {
     }
 }
 plugins {
-    id 'net.researchgate.release' version '3.0.2'
     id 'com.github.hierynomus.license' version '0.16.1'
     id 'maven-publish'
     id 'signing'
@@ -35,12 +34,6 @@ tasks.register('javadocJar', Jar) {
     dependsOn javadoc
     archiveClassifier = 'javadoc'
     from javadoc.destinationDir
-}
-
-release {
-    tagTemplate = 'v${version}'
-    failOnPublishNeeded = false
-    failOnCommitNeeded = false
 }
 
 repositories {
@@ -142,7 +135,6 @@ publishing {
     }
 }
 
-afterReleaseBuild.dependsOn nexusPublishing
 
 nexusPublishing {
     repositories {
