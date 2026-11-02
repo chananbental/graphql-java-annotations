@@ -73,7 +73,7 @@ public class GraphQLIgnoredFieldParameterTest {
         GraphQLObjectType queryType = schema.getQueryType();
         assertThat(queryType.getFieldDefinition("foo"), notNullValue());
         assertThat(queryType.getFieldDefinition("foo").getArguments().size(), is(2));
-        assertThat(queryType.getFieldDefinition("foo").getArgument("arg0"), notNullValue());
+        assertThat(queryType.getFieldDefinition("foo").getArgument("bar"), notNullValue());
         assertThat(queryType.getFieldDefinition("foo").getArgument("baz"), nullValue());
         assertThat(queryType.getFieldDefinition("foo").getArgument("quuxAlias"), notNullValue());
     }
@@ -112,7 +112,7 @@ public class GraphQLIgnoredFieldParameterTest {
         GraphQLObjectType mutation = schema.getMutationType();
         assertThat(mutation.getFieldDefinition("foo"), notNullValue());
         assertThat(mutation.getFieldDefinition("foo").getArguments().size(), is(2));
-        assertThat(mutation.getFieldDefinition("foo").getArgument("arg0"), notNullValue());
+        assertThat(mutation.getFieldDefinition("foo").getArgument("bar"), notNullValue());
         assertThat(mutation.getFieldDefinition("foo").getArgument("baz"), nullValue());
         assertThat(mutation.getFieldDefinition("foo").getArgument("quuxAlias"), notNullValue());
     }
