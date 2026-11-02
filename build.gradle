@@ -57,7 +57,7 @@ publishing {
     repositories {
         maven {
             name = 'centralStaging'
-            url = layout.buildDirectory.dir('central-staging')
+            url = uri(layout.buildDirectory.dir('central-staging').get().asFile)
         }
     }
     publications {
