@@ -57,7 +57,7 @@ publishing {
     publications {
         maven(MavenPublication) {
             from components.java
-            groupId 'io.github.graphql-java'
+            groupId 'io.github.chananbental'
             artifactId project.name
             version project.version
 
@@ -69,13 +69,13 @@ publishing {
                     resolveStrategy = Closure.DELEGATE_FIRST
                     name 'graphql-java-annotations'
                     description 'Annotations-based syntax for GraphQL schema definition'
-                    url 'https://github.com/graphql-java/graphql-java-annotations'
+                    url 'https://github.com/chananbental/graphql-java-annotations'
                     inceptionYear '2016'
 
                     scm {
-                        url 'https://github.com/graphql-java/graphql-java-annotations'
-                        connection 'scm:https://yrashk@github.com/graphql-java/graphql-java-annotations.git'
-                        developerConnection 'scm:git://github.com/graphql-java/graphql-java-annotations.git'
+                        url 'https://github.com/chananbental/graphql-java-annotations'
+                        connection 'scm:git:https://github.com/chananbental/graphql-java-annotations.git'
+                        developerConnection 'scm:git:https://github.com/chananbental/graphql-java-annotations.git'
                     }
 
                     licenses {
