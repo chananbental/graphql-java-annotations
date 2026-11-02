@@ -127,7 +127,11 @@ signing {
     def signingKey = System.getenv("MAVEN_CENTRAL_PGP_KEY")
     def signingPassword = System.getenv("MAVEN_CENTRAL_PGP_PASSWORD")
     useInMemoryPgpKeys(signingKey, signingPassword == null ? "" : signingPassword)
-    sign publishing.publications
+    // Do not attach missing signature artifacts to local/CI publications.
+    // Signing remains required for release publication when a key is provided.
+    if (signingKey) {
+        sign publishing.publications
+    }
 }
 
 
