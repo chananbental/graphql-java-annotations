@@ -1,13 +1,9 @@
-import aQute.bnd.gradle.Bundle
-import io.github.gradlenexus.publishplugin.NexusRepository
 
 buildscript {
     repositories {
         mavenCentral()
     }
     dependencies {
-        classpath 'biz.aQute.bnd:biz.aQute.bnd.gradle:6.4.0'
-        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:latest.release"
     }
 }
 plugins {
@@ -19,7 +15,6 @@ plugins {
 
 apply plugin: 'java-library'
 apply plugin: 'idea'
-apply plugin: 'biz.aQute.bnd.builder'
 apply plugin: 'maven-publish'
 
 
@@ -153,9 +148,6 @@ signing {
     sign publishing.publications
 }
 
-tasks.register('bundle', Bundle) {
-    from sourceSets.main.output
-}
 
 wrapper {
     gradleVersion = '9.2.1'
