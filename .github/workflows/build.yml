@@ -31,7 +31,22 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Build and verify Maven publication with Gradle
-        run: ./gradlew build publishToMavenLocal
+        run: ./gradlew build publishToMavenLocal centralBundle
+      - name: Verify Central bundle layout
+        run: |
+          python3 - <<'PY'
+          import glob, zipfile
+          bundles = glob.glob('build/distributions/central-bundle-*.zip')
+          assert len(bundles) == 1, bundles
+          with zipfile.ZipFile(bundles[0]) as archive:
+              names = archive.namelist()
+              prefix = 'io/github/chananbental/graphql-java-annotations/'
+              assert any(name.startswith(prefix) and name.endswith('.pom') for name in names), names
+              assert any(name.startswith(prefix) and name.endswith('.jar') for name in names), names
+              assert any(name.startswith(prefix) and name.endswith('-sources.jar') for name in names), names
+              assert any(name.startswith(prefix) and name.endswith('-javadoc.jar') for name in names), names
+              print('Central bundle Maven layout verified:', bundles[0])
+          PY
       - name: Publish Test Report
         uses: mikepenz/action-junit-report@v5
         if: always() # always run even if the previous step fails
