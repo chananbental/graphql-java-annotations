@@ -7,10 +7,8 @@ buildscript {
     }
 }
 plugins {
-    id 'com.github.hierynomus.license' version '0.16.1'
     id 'maven-publish'
     id 'signing'
-    id "io.github.gradle-nexus.publish-plugin" version "1.3.0"
 }
 
 apply plugin: 'java-library'
@@ -130,15 +128,6 @@ publishing {
     }
 }
 
-
-nexusPublishing {
-    repositories {
-        sonatype {
-            username = System.getenv("MAVEN_CENTRAL_USERTOKEN_USERNAME")
-            password = System.getenv("MAVEN_CENTRAL_USERTOKEN_PASSWORD")
-        }
-    }
-}
 
 // to publish to local maven repo skip signing: ./gradlew publishToMavenLocal  -x signGraphqlJavaPublication
 signing {
