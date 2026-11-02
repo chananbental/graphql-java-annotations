@@ -2,6 +2,7 @@ package graphql.annotations;
 
 import graphql.ExecutionResult;
 import graphql.GraphQL;
+import graphql.introspection.IntrospectionQuery;
 import graphql.annotations.annotationTypes.GraphQLField;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.idl.SchemaPrinter;
@@ -53,6 +54,21 @@ public class GraphQLJava26CompatibilityTest {
         Map<String, Object> schemaData = (Map<String, Object>) data.get("__schema");
         Map<String, Object> queryType = (Map<String, Object>) schemaData.get("queryType");
         assertEquals(queryType.get("name"), "Query");
+    }
+
+    @Test
+    public void annotationGeneratedSchemaSupportsStandardIntrospectionQuery() {
+        GraphQLSchema schema = AnnotationsSchemaCreator.newAnnotationsSchema()
+                .query(Query.class)
+                .build();
+
+        ExecutionResult result = GraphQL.newGraphQL(schema)
+                .build()
+                .execute(IntrospectionQuery.INTROSPECTION_QUERY);
+
+        assertTrue(result.getErrors().isEmpty(), result.getErrors().toString());
+        Map<String, Object> data = result.getData();
+        assertNotNull(data.get("__schema"));
     }
 
     @Test
