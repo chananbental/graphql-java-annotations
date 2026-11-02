@@ -54,6 +54,12 @@ dependencies {
 test.useTestNG()
 
 publishing {
+    repositories {
+        maven {
+            name = 'centralStaging'
+            url = layout.buildDirectory.dir('central-staging')
+        }
+    }
     publications {
         maven(MavenPublication) {
             from components.java
@@ -138,4 +144,12 @@ signing {
 
 wrapper {
     gradleVersion = '9.2.1'
+}
+
+// Bundle a signed Maven-layout repository for Sonatype Central Portal.
+tasks.register('centralBundle', Zip) {
+    dependsOn 'publishMavenPublicationToCentralStagingRepository'
+    from(layout.buildDirectory.dir('central-staging'))
+    archiveFileName = "central-bundle-${project.version}.zip"
+    destinationDirectory = layout.buildDirectory.dir('distributions')
 }
