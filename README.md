@@ -32,7 +32,7 @@ If you would like to use a tool that creates a graphql spring boot server using 
 
 ## Upgrade branch: GraphQL Java 26.1
 
-This fork's upgrade branch builds with **JDK 25** and **Gradle 9.2.1**, targeting Java 17 bytecode for library consumers. The version `26.1-SNAPSHOT` is **not published to Maven Central**; build and install it locally using `./gradlew build publishToMavenLocal` before using the coordinates below.
+This fork's upgrade branch builds with **JDK 25** and **Gradle 9.2.1**, targeting Java 17 bytecode for library consumers. The version `26.1.0-SNAPSHOT` is **not published to Maven Central**; build and install it locally using `./gradlew build publishToMavenLocal` before using the coordinates below.
 
 **TypeScript GraphQL Code Generator:** If a complex introspection query triggers GraphQL Java's `GoodFaithIntrospection` safeguard, upgrading this library alone does not disable that safeguard. A supported alternative is to export the already-built `GraphQLSchema` as SDL using `new graphql.schema.idl.SchemaPrinter().print(schema)`, save the result to `schema.graphql`, and configure `@graphql-codegen/cli` to read that local SDL file as its `schema`. The included compatibility tests cover basic introspection and SDL printing, but do not exercise a full Code Generator introspection request.
 
@@ -45,7 +45,7 @@ This fork's upgrade branch builds with **JDK 25** and **Gradle 9.2.1**, targetin
 
 ```groovy
 dependencies {
-  implementation "io.github.graphql-java:graphql-java-annotations:26.1-SNAPSHOT"
+  implementation "io.github.chananbental:graphql-java-annotations:26.1.0-SNAPSHOT"
 }
 ```
 
@@ -53,9 +53,9 @@ dependencies {
 
 ```groovy
 <dependency>
-    <groupId>io.github.graphql-java</groupId>
+    <groupId>io.github.chananbental</groupId>
     <artifactId>graphql-java-annotations</artifactId>
-    <version>26.1-SNAPSHOT</version>
+    <version>26.1.0-SNAPSHOT</version>
 </dependency>
 ```
 
