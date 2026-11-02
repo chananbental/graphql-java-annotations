@@ -6,6 +6,10 @@ name: Build
 on: [push, pull_request]
 
 jobs:
+  permissions:
+    contents: read
+    checks: write
+    pull-requests: write
   validation:
     name: "Gradle Validation"
     runs-on: ubuntu-latest
@@ -17,7 +21,7 @@ jobs:
       - validation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up JDK 25
         uses: actions/setup-java@v4
         with:
