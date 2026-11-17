@@ -67,6 +67,10 @@ public class MethodDataFetcher<T> implements DataFetcher<T> {
                 return (T) method.invoke(null, invocationArgs(environment, container));
             } else if (method.isAnnotationPresent(GraphQLInvokeDetached.class)) {
                 obj = newInstance((Class<T>) method.getDeclaringClass());
+            } else if (environment.getSource() == null) {
+                // Root query/mutation fields have no source object by default.
+                // Instantiate the declaring class rather than invoking an instance method on null.
+                obj = newInstance((Class<T>) method.getDeclaringClass());
             } else if (!method.getDeclaringClass().isInstance(environment.getSource())) {
                 obj = newInstance((Class<T>) method.getDeclaringClass(), environment.getSource());
             } else {

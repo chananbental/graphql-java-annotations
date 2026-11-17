@@ -138,7 +138,7 @@ public class DirectiveArgumentCreatorTest {
         GraphQLArgument argument = directiveArgumentCreator.getArgument(Container.class.getMethod("methodWithParamsNoGraphQLData", String.class).getParameters()[0]);
 
         // Assert
-        assertEquals(argument.getName(), "arg0");
+        assertEquals(argument.getName(), "param1");
         assertEquals(argument.getArgumentDefaultValue().getValue(), null);
         assertEquals(argument.getDescription(), null);
         assertEquals(argument.getType(), GraphQLString);
