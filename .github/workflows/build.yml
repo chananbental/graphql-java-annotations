@@ -40,7 +40,7 @@ jobs:
           assert len(bundles) == 1, bundles
           with zipfile.ZipFile(bundles[0]) as archive:
               names = archive.namelist()
-              prefix = 'io/github/chananbental/graphql-java-annotations/'
+              prefix = 'com/graphql-java/graphql-java-annotations/'
               assert any(name.startswith(prefix) and name.endswith('.pom') for name in names), names
               assert any(name.startswith(prefix) and name.endswith('.jar') for name in names), names
               assert any(name.startswith(prefix) and name.endswith('-sources.jar') for name in names), names
